@@ -190,33 +190,26 @@
         </div>
     </footer>
 
-    <script>
+       <script>
         $(document).ready(function() {
-            // Cache elements
+            // Bagian ini untuk navigasi dan scrolling, tidak diubah.
             const navLinks = document.querySelectorAll('.nav-link[href^="#"]');
             const sections = document.querySelectorAll('section');
             
-            // Immediate visual feedback untuk menu
             function setActiveMenu(sectionId) {
                 document.querySelectorAll('.nav-link').forEach(link => link.classList.remove('active'));
                 const activeLink = document.querySelector(`.nav-link[data-section="${sectionId}"]`);
                 if (activeLink) activeLink.classList.add('active');
             }
 
-            // Super responsive click handler
             navLinks.forEach(link => {
                 link.addEventListener('click', function(e) {
                     e.preventDefault();
-                    
-                    // Immediate visual feedback
                     setActiveMenu(this.dataset.section);
-                    
-                    // Get target
                     const targetId = this.getAttribute('href');
                     const target = document.querySelector(targetId);
                     
                     if (target) {
-                        // Smooth scroll menggunakan native API (lebih cepat)
                         const targetPosition = target.offsetTop - 70;
                         window.scrollTo({
                             top: targetPosition,
@@ -226,7 +219,6 @@
                 });
             });
 
-            // Lightweight scroll detection dengan requestAnimationFrame
             let ticking = false;
             
             function updateActiveMenu() {
@@ -253,96 +245,73 @@
                 }
             });
 
-            // Initialize charts dengan delay minimal
-            requestAnimationFrame(() => {
-                setTimeout(initCharts, 50);
-            });
-        });
+            <?php
+            include 'services/aboutmedb.php';
 
-        function initCharts() {
-            // Chart 1: Proyek yang Diselesaikan (Bar Chart)
-            const projectCtx = document.getElementById('projectChart').getContext('2d');
-            const projectChart = new Chart(projectCtx, {
-                type: 'bar',
-                data: {
-                    labels: ['IOT Projects', 'Web Development', 'UI/UX Design', 'Python Scripts', 'Mobile Apps'],
-                    datasets: [{
-                        label: 'Jumlah Proyek',
-                        data: [19, 10, 8, 2, 5],
-                        backgroundColor: [
-                            'rgba(0, 188, 212, 0.8)',
-                            'rgba(0, 188, 212, 0.7)',
-                            'rgba(0, 188, 212, 0.6)',
-                            'rgba(0, 188, 212, 0.5)',
-                            'rgba(0, 188, 212, 0.4)'
-                        ],
-                        borderColor: '#00bcd4',
-                        borderWidth: 1
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    plugins: {
-                        legend: {
-                            labels: {
-                                color: '#fff'
-                            }
-                        }
+            // Query chart 1
+            $labels1 = [];
+            $data_chart1 = [];
+            if ($koneksi) {
+                $sql = "SELECT projectname, total FROM projectdone";
+                $result = $koneksi->query($sql);
+                if ($result && $result->num_rows > 0) {
+                    while($row = $result->fetch_assoc()) {
+                        $labels1[] = $row["projectname"];
+                        $data_chart1[] = (int)$row["total"];
+                    }
+                }
+            }
+
+            // Query chart 2
+            $labels2 = [];
+            $data_chart2 = [];
+            if ($koneksi) {
+                $sql = "SELECT kepuasan, banyak FROM kepuasanpelanggan";
+                $result = $koneksi->query($sql);
+                if ($result && $result->num_rows > 0) {
+                    while($row = $result->fetch_assoc()) {
+                        $labels2[] = $row["kepuasan"];
+                        $data_chart2[] = (int)$row["banyak"];
+                    }
+                }
+            }
+            $koneksi->close();
+            ?>
+
+            function initCharts() {
+                const projectChart = new Chart(document.getElementById('projectChart'), {
+                    type: 'bar',
+                    data: {
+                        labels: <?php echo json_encode($labels1); ?>,
+                        datasets: [{
+                            label: 'Jumlah Proyek',
+                            data: <?php echo json_encode($data_chart1); ?>,
+                            backgroundColor: 'rgba(0, 188, 212, 0.6)',
+                            borderColor: '#00bcd4',
+                            borderWidth: 1
+                        }]
                     },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            ticks: {
-                                color: '#fff'
-                            },
-                            grid: {
-                                color: '#333'
-                            }
-                        },
-                        x: {
-                            ticks: {
-                                color: '#fff'
-                            },
-                            grid: {
-                                color: '#333'
-                            }
-                        }
-                    }
-                }
-            });
+                    options: { responsive: true }
+                });
 
-            // Chart 2: Tingkat Kepuasan Klien (Doughnut Chart)
-            const satisfactionCtx = document.getElementById('satisfactionChart').getContext('2d');
-            const satisfactionChart = new Chart(satisfactionCtx, {
-                type: 'doughnut',
-                data: {
-                    labels: ['Sangat Puas', 'Puas', 'Cukup Puas', 'Kurang Puas'],
-                    datasets: [{
-                        data: [39, 4, 1, 0],
-                        backgroundColor: [
-                            '#34eb4c',
-                            '#26c6da',
-                            '#ebdc34',
-                            '#eb4034'
-                        ],
-                        borderColor: '#1e1e1e',
-                        borderWidth: 2
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    plugins: {
-                        legend: {
-                            position: 'bottom',
-                            labels: {
-                                color: '#fff',
-                                padding: 20
-                            }
-                        }
-                    }
-                }
-            });
-        }
+                const satisfactionChart = new Chart(document.getElementById('satisfactionChart'), {
+                    type: 'doughnut',
+                    data: {
+                        labels: <?php echo json_encode($labels2); ?>,
+                        datasets: [{
+                            data: <?php echo json_encode($data_chart2); ?>,
+                            backgroundColor: ['#34eb4c', '#26c6da', '#ebdc34', '#eb4034'],
+                            borderColor: '#1e1e1e',
+                            borderWidth: 2
+                        }]
+                    },
+                    options: { responsive: true }
+                });
+            }
+
+            initCharts();
+
+        });
     </script>
 
 </body>
